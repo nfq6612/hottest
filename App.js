@@ -6,12 +6,9 @@
  * @flow
  */
 
-import React, {
-  Component,
-} from 'react';
+import React, { Component } from 'react';
 
 import {
-  AppRegistry,
   StyleSheet,
   Platform,
   Text,
@@ -19,6 +16,7 @@ import {
   Alert,
   TouchableOpacity,
   DeviceEventEmitter,
+  ScrollView,
   Linking,
 } from 'react-native';
 
@@ -33,19 +31,21 @@ import {
   switchVersionLater,
   markSuccess,
 } from 'react-native-update';
-
 import _updateConfig from './update.json';
 const { appKey } = _updateConfig[Platform.OS];
-console.log(appKey)
+//console.log(appKey);
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      progress: 0
+      progress: 0,
+      info: '',
+      totalRead: 0,
+      contentLength: 0,
     };
-
   }
   componentDidMount() {
+
     if (isFirstTime) {
       Alert.alert('提示', '这是当前版本第一次启动,是否要模拟启动失败?失败将回滚到上一版本', [
         { text: '是', onPress: () => { throw new Error('模拟启动失败,请重启应用') } },
@@ -55,8 +55,9 @@ class App extends Component {
       Alert.alert('提示', '刚刚更新失败了,版本被回滚.');
     }
     DeviceEventEmitter.addListener('progress', (pro) => {
-      console.log('Progress' + pro.progress)
-      this.setState({ progress: pro.progress })
+      console.log('progress' + pro.progress)
+      let info = this.state.info + pro.progress + '\n';
+      this.setState({ progress: pro.progress, info: info, totalRead: pro.totalRead, contentLength: pro.contentLength })
     });
   }
   componentWillUnmount() {
@@ -83,8 +84,10 @@ class App extends Component {
     let info;
     try {
       info = await checkUpdate(appKey);
+      this.setState({ info: JSON.stringify(info) })
     } catch (err) {
       console.warn(err);
+      alert(JSON.stringify(err))
       return;
     }
     if (info.expired) {
@@ -102,24 +105,28 @@ class App extends Component {
   };
   render() {
     return (
-      <View style={styles.container}>
-        <Text style={styles.welcome}>
-          欢迎使用热更新服务
-        </Text>
-        <Text style={styles.instructions}>
-          这是版本一 {'\n'}
-          当前包版本号: {packageVersion}{'\n'}
-          当前版本Hash: {currentVersion || '(空)'}{'\n'}
-        </Text>
-        <TouchableOpacity onPress={this.checkUpdate}>
+      <ScrollView>
+        <View style={styles.container}>
           <Text style={styles.instructions}>
-            点击这里检查更新2.1
+            totalRead:{this.state.totalRead}
+            contentLength:{this.state.contentLength}
+            当前包版本号: {packageVersion}{'\n'}
+            当前版本Hash: {currentVersion || '(空)'}{'\n'}
           </Text>
-        </TouchableOpacity>
-        <Text style={styles.welcome}>
-          更新进度{this.state.progress}
-        </Text>
-      </View>
+          <TouchableOpacity onPress={this.checkUpdate}>
+            <Text style={styles.instructions}>
+              点击这里检查更新84
+          </Text>
+          </TouchableOpacity>
+
+          <Text style={styles.welcome}>
+            更新进度{this.state.progress}
+          </Text>
+          <Text style={styles.welcome}>
+            {this.state.info}
+          </Text>
+        </View>
+      </ScrollView>
     );
   }
 }
@@ -127,7 +134,7 @@ class App extends Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     backgroundColor: '#F5FCFF',
   },

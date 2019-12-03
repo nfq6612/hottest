@@ -3,8 +3,6 @@ package cn.reactnative.modules.update;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Intent;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 
 import com.facebook.react.ReactApplication;
@@ -75,6 +73,7 @@ public class UpdateModule extends ReactContextBaseJavaModule{
             public void onDownloadCompleted() {
                 promise.resolve(null);
             }
+
             @Override
             public void onDownloadFailed(Throwable error) {
                 promise.reject(error);
@@ -91,6 +90,7 @@ public class UpdateModule extends ReactContextBaseJavaModule{
             public void onDownloadCompleted() {
                 promise.resolve(null);
             }
+
             @Override
             public void onDownloadFailed(Throwable error) {
                 promise.reject(error);
@@ -108,6 +108,7 @@ public class UpdateModule extends ReactContextBaseJavaModule{
             public void onDownloadCompleted() {
                 promise.resolve(null);
             }
+
             @Override
             public void onDownloadFailed(Throwable error) {
                 promise.reject(error);
@@ -174,7 +175,7 @@ public class UpdateModule extends ReactContextBaseJavaModule{
         });
     }
 
-    /* 发送事件 */
+    /* 发送事件*/
     public static void sendEvent(String eventName,  WritableMap params) {
         ((ReactContext) mContext).getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(eventName,
                 params);

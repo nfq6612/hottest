@@ -60,12 +60,11 @@ public class UpdateContext {
     }
 
     public String getBuildTime() {
-        return BuildConfig.PUSHY_BUILD_TIME;
+        return context.getString(R.string.pushy_build_time);
     }
 
     public interface DownloadFileListener {
         void onDownloadCompleted();
-        //void onDownloadProgress();
         void onDownloadFailed(Throwable error);
     }
 
@@ -214,7 +213,6 @@ public class UpdateContext {
             @Override
             public void onDownloadCompleted() {
             }
-
 
             @Override
             public void onDownloadFailed(Throwable error) {

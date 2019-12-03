@@ -3,8 +3,6 @@ package cn.reactnative.modules.update;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.Toast;
-
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
 
@@ -39,7 +37,7 @@ import static cn.reactnative.modules.update.UpdateModule.sendEvent;
 /**
  * Created by tdzl2003 on 3/31/16.
  */
-class DownloadTask extends AsyncTask<DownloadTaskParams, Integer, Void> {
+class DownloadTask extends AsyncTask<DownloadTaskParams, long[], Void> {
     final int DOWNLOAD_CHUNK_SIZE = 4096;
 
     Context context;
@@ -73,7 +71,8 @@ class DownloadTask extends AsyncTask<DownloadTaskParams, Integer, Void> {
 
     private void downloadFile(String url, File writePath) throws IOException {
         OkHttpClient client = new OkHttpClient();
-        Request request = new Request.Builder().url(url).build();
+        Request request = new Request.Builder().url(url)
+                .build();
         Response response = client.newCall(request).execute();
         if (response.code() > 299) {
             throw new Error("Server return code " + response.code());
@@ -94,14 +93,17 @@ class DownloadTask extends AsyncTask<DownloadTaskParams, Integer, Void> {
 
         long bytesRead = 0;
         long totalRead = 0;
+        double lastProgressValue=0;
         while ((bytesRead = source.read(sink.buffer(), DOWNLOAD_CHUNK_SIZE)) != -1) {
             totalRead += bytesRead;
             if (UpdateContext.DEBUG) {
                 Log.d("RNUpdate", "Progress " + totalRead + "/" + contentLength);
             }
-           System.out.println("Progress " + totalRead + "/" + contentLength);
-            int pro=(int)((totalRead*1.0 / (contentLength*1.0))*100);
-            publishProgress(pro);
+            double progress = Math.round(((double) totalRead * 100) / contentLength);
+            if ((progress != lastProgressValue) || (totalRead == contentLength)) {
+                lastProgressValue = progress;
+                publishProgress(new long[]{(long)progress,totalRead, contentLength});
+            }
         }
         if (totalRead != contentLength) {
             throw new Error("Unexpected eof while reading ppk");
@@ -115,11 +117,12 @@ class DownloadTask extends AsyncTask<DownloadTaskParams, Integer, Void> {
     }
 
     @Override
-    protected void onProgressUpdate(Integer... values) {
+    protected void onProgressUpdate(long[]... values) {
         super.onProgressUpdate(values);
-        System.out.println("Progress values" +values[0]);
         WritableMap params = Arguments.createMap();
-        params.putString("progress", values[0].toString());
+        params.putDouble("progress", (values[0][0]));
+        params.putDouble("totalRead", (values[0][1]));
+        params.putDouble("contentLength", (values[0][2]));
         sendEvent("progress", params);
 
     }
@@ -133,7 +136,8 @@ class DownloadTask extends AsyncTask<DownloadTaskParams, Integer, Void> {
 
         FileOutputStream fout = new FileOutputStream(fmd);
 
-        while ((count = zis.read(buffer)) != -1) {
+        while ((count = zis.read(buffer)) != -1)
+        {
             fout.write(buffer, 0, count);
         }
 
@@ -147,7 +151,8 @@ class DownloadTask extends AsyncTask<DownloadTaskParams, Integer, Void> {
         InputStream in = new FileInputStream(from);
         FileOutputStream fout = new FileOutputStream(fmd);
 
-        while ((count = in.read(buffer)) != -1) {
+        while ((count = in.read(buffer)) != -1)
+        {
             fout.write(buffer, 0, count);
         }
 
@@ -159,7 +164,8 @@ class DownloadTask extends AsyncTask<DownloadTaskParams, Integer, Void> {
         int count;
 
         ByteArrayOutputStream fout = new ByteArrayOutputStream();
-        while ((count = zis.read(buffer)) != -1) {
+        while ((count = zis.read(buffer)) != -1)
+        {
             fout.write(buffer, 0, count);
         }
 
@@ -168,7 +174,7 @@ class DownloadTask extends AsyncTask<DownloadTaskParams, Integer, Void> {
         return fout.toByteArray();
     }
 
-    private byte[] readOriginBundle() throws IOException {
+    private byte[] readOriginBundle()  throws IOException {
         InputStream in;
         try {
             in = context.getAssets().open("index.android.bundle");
@@ -178,7 +184,8 @@ class DownloadTask extends AsyncTask<DownloadTaskParams, Integer, Void> {
         int count;
 
         ByteArrayOutputStream fout = new ByteArrayOutputStream();
-        while ((count = in.read(buffer)) != -1) {
+        while ((count = in.read(buffer)) != -1)
+        {
             fout.write(buffer, 0, count);
         }
 
@@ -187,12 +194,13 @@ class DownloadTask extends AsyncTask<DownloadTaskParams, Integer, Void> {
         return fout.toByteArray();
     }
 
-    private byte[] readFile(File file) throws IOException {
+    private byte[] readFile(File file)  throws IOException {
         InputStream in = new FileInputStream(file);
         int count;
 
         ByteArrayOutputStream fout = new ByteArrayOutputStream();
-        while ((count = in.read(buffer)) != -1) {
+        while ((count = in.read(buffer)) != -1)
+        {
             fout.write(buffer, 0, count);
         }
 
@@ -238,7 +246,8 @@ class DownloadTask extends AsyncTask<DownloadTaskParams, Integer, Void> {
         removeDirectory(param.unzipDirectory);
         param.unzipDirectory.mkdirs();
 
-        while ((ze = zis.getNextEntry()) != null) {
+        while ((ze = zis.getNextEntry()) != null)
+        {
             String fn = ze.getName();
             File fmd = new File(param.unzipDirectory, fn);
 
@@ -261,16 +270,15 @@ class DownloadTask extends AsyncTask<DownloadTaskParams, Integer, Void> {
         }
     }
 
-    private void copyFromResource(HashMap<String, ArrayList<File>> map) throws IOException {
-        ZipInputStream zis = new ZipInputStream(
-                new BufferedInputStream(new FileInputStream(context.getPackageResourcePath())));
+    private void copyFromResource(HashMap<String, ArrayList<File> > map) throws IOException {
+        ZipInputStream zis = new ZipInputStream(new BufferedInputStream(new FileInputStream(context.getPackageResourcePath())));
         ZipEntry ze;
         while ((ze = zis.getNextEntry()) != null) {
             String fn = ze.getName();
             ArrayList<File> targets = map.get(fn);
             if (targets != null) {
                 File lastTarget = null;
-                for (File target : targets) {
+                for (File target: targets) {
                     if (UpdateContext.DEBUG) {
                         Log.d("RNUpdate", "Copying from resource " + fn + " to " + target);
                     }
@@ -298,19 +306,20 @@ class DownloadTask extends AsyncTask<DownloadTaskParams, Integer, Void> {
 
         HashMap<String, ArrayList<File>> copyList = new HashMap<String, ArrayList<File>>();
 
-        while ((ze = zis.getNextEntry()) != null) {
+        while ((ze = zis.getNextEntry()) != null)
+        {
             String fn = ze.getName();
 
             if (fn.equals("__diff.json")) {
                 // copy files from assets
                 byte[] bytes = readBytes(zis);
                 String json = new String(bytes, "UTF-8");
-                JSONObject obj = (JSONObject) new JSONTokener(json).nextValue();
+                JSONObject obj = (JSONObject)new JSONTokener(json).nextValue();
 
                 JSONObject copies = obj.getJSONObject("copies");
                 Iterator<?> keys = copies.keys();
-                while (keys.hasNext()) {
-                    String to = (String) keys.next();
+                while( keys.hasNext() ) {
+                    String to = (String)keys.next();
                     String from = copies.getString(to);
                     if (from.isEmpty()) {
                         from = to;
@@ -323,7 +332,7 @@ class DownloadTask extends AsyncTask<DownloadTaskParams, Integer, Void> {
                         target = copyList.get((from));
                     }
                     target.add(new File(param.unzipDirectory, to));
-                    // copyFromResource(from, new File(param.unzipDirectory, to));
+                    //copyFromResource(from, new File(param.unzipDirectory, to));
                 }
                 continue;
             }
@@ -371,19 +380,20 @@ class DownloadTask extends AsyncTask<DownloadTaskParams, Integer, Void> {
         removeDirectory(param.unzipDirectory);
         param.unzipDirectory.mkdirs();
 
-        while ((ze = zis.getNextEntry()) != null) {
+        while ((ze = zis.getNextEntry()) != null)
+        {
             String fn = ze.getName();
 
             if (fn.equals("__diff.json")) {
                 // copy files from assets
                 byte[] bytes = readBytes(zis);
                 String json = new String(bytes, "UTF-8");
-                JSONObject obj = (JSONObject) new JSONTokener(json).nextValue();
+                JSONObject obj = (JSONObject)new JSONTokener(json).nextValue();
 
                 JSONObject copies = obj.getJSONObject("copies");
                 Iterator<?> keys = copies.keys();
-                while (keys.hasNext()) {
-                    String to = (String) keys.next();
+                while( keys.hasNext() ) {
+                    String to = (String)keys.next();
                     String from = copies.getString(to);
                     if (from.isEmpty()) {
                         from = to;
@@ -396,8 +406,7 @@ class DownloadTask extends AsyncTask<DownloadTaskParams, Integer, Void> {
             }
             if (fn.equals("index.bundlejs.patch")) {
                 // do bsdiff patch
-                byte[] patched = bsdiffPatch(readFile(new File(param.originDirectory, "index.bundlejs")),
-                        readBytes(zis));
+                byte[] patched = bsdiffPatch(readFile(new File(param.originDirectory, "index.bundlejs")), readBytes(zis));
 
                 FileOutputStream fout = new FileOutputStream(new File(param.unzipDirectory, "index.bundlejs"));
                 fout.write(patched);
@@ -424,7 +433,6 @@ class DownloadTask extends AsyncTask<DownloadTaskParams, Integer, Void> {
             Log.d("RNUpdate", "Unzip finished");
         }
     }
-
     private void doCleanUp(DownloadTaskParams param) throws IOException {
         if (UpdateContext.DEBUG) {
             Log.d("RNUpdate", "Start cleaning up");
@@ -449,18 +457,18 @@ class DownloadTask extends AsyncTask<DownloadTaskParams, Integer, Void> {
     protected Void doInBackground(DownloadTaskParams... params) {
         try {
             switch (params[0].type) {
-            case DownloadTaskParams.TASK_TYPE_FULL_DOWNLOAD:
-                doDownload(params[0]);
-                break;
-            case DownloadTaskParams.TASK_TYPE_PATCH_FROM_APK:
-                doPatchFromApk(params[0]);
-                break;
-            case DownloadTaskParams.TASK_TYPE_PATCH_FROM_PPK:
-                doPatchFromPpk(params[0]);
-                break;
-            case DownloadTaskParams.TASK_TYPE_CLEARUP:
-                doCleanUp(params[0]);
-                break;
+                case DownloadTaskParams.TASK_TYPE_FULL_DOWNLOAD:
+                    doDownload(params[0]);
+                    break;
+                case DownloadTaskParams.TASK_TYPE_PATCH_FROM_APK:
+                    doPatchFromApk(params[0]);
+                    break;
+                case DownloadTaskParams.TASK_TYPE_PATCH_FROM_PPK:
+                    doPatchFromPpk(params[0]);
+                    break;
+                case DownloadTaskParams.TASK_TYPE_CLEARUP:
+                    doCleanUp(params[0]);
+                    break;
             }
             params[0].listener.onDownloadCompleted();
         } catch (Throwable e) {
