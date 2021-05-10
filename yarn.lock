@@ -4045,9 +4045,9 @@ lodash.unescape@4.0.1:
   integrity sha1-vyJJiGzlFM2hEvrpIYzcBlIR/Jw=
 
 lodash@^4.17.10, lodash@^4.17.13, lodash@^4.17.14, lodash@^4.17.15, lodash@^4.17.5, lodash@^4.3.0:
-  version "4.17.15"
-  resolved "https://registry.npm.taobao.org/lodash/download/lodash-4.17.15.tgz?cache=0&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Flodash%2Fdownload%2Flodash-4.17.15.tgz#b447f6670a0455bbfeedd11392eff330ea097548"
-  integrity sha1-tEf2ZwoEVbv+7dETku/zMOoJdUg=
+  version "4.17.21"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
+  integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
 
 log-symbols@^2.2.0:
   version "2.2.0"
@@ -5249,6 +5249,13 @@ react-is@^16.8.1, react-is@^16.8.4, react-is@^16.9.0:
   resolved "https://registry.npm.taobao.org/react-is/download/react-is-16.12.0.tgz?cache=0&sync_timestamp=1573776352270&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Freact-is%2Fdownload%2Freact-is-16.12.0.tgz#2cc0fe0fba742d97fd527c42a13bec4eeb06241c"
   integrity sha1-LMD+D7p0LZf9UnxCoTvsTusGJBw=
 
+react-native-update@^5.5.1:
+  version "5.10.1"
+  resolved "https://registry.yarnpkg.com/react-native-update/-/react-native-update-5.10.1.tgz#77595896f0892972e4b45264ab1008c24ce51c8d"
+  integrity sha512-fRIwHPUPmrzHwG8K19nTGaKF0kieOxvIYMf2bXWVY+lKvTU42fQdvr5YoLhvh3+MsAzY4P03PI8SzrX+OByW7Q==
+  dependencies:
+    uuid "3"
+
 react-native@0.61.4:
   version "0.61.4"
   resolved "https://registry.npm.taobao.org/react-native/download/react-native-0.61.4.tgz#9ec6e8a2aa8eac57143dcfa39115c7d9a139bc2c"
@@ -6402,6 +6409,11 @@ utils-merge@1.0.1:
   version "1.0.1"
   resolved "https://registry.npm.taobao.org/utils-merge/download/utils-merge-1.0.1.tgz#9f95710f50a267947b2ccc124741c1028427e713"
   integrity sha1-n5VxD1CiZ5R7LMwSR0HBAoQn5xM=
+
+uuid@3:
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.4.0.tgz#b23e4358afa8a202fe7a100af1f5f883f02007ee"
+  integrity sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==
 
 uuid@^3.3.2:
   version "3.3.3"
